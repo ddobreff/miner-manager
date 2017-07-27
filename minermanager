@@ -1,0 +1,214 @@
+#!/bin/bash
+##########################################################################
+##    IF you like this tool, feel free to donate a beer or two          ##
+##    to my BTC Address:  172BTaR7kwHhHGfqYkirW1SeuwbNzXf3fX            ##
+##########################################################################
+# Copyright Dobromir Dobrev &copy 2017 : dobreff@gmail.com		##
+# NVIDIA requires Xorg server to run and packge jq is 			##
+# also required for parsing config  "apt install jq"			##
+# Generate /etc/X11/xorg.conf by using this command: 			##
+# "nvidia-xconfig -a --cool-bits=28 --allow-empty-initial-configuration"##
+# Remember to start Xorg before executing this script!			##
+# The script itself - DO NOT EDIT !!! EDIT /etc/conf.json		##
+##########################################################################
+
+Logger(){
+        test -t 1 && echo "`date +%Y.%m.%d-%H:%M:%S` [@$host_name] [$$] $*"
+        test -z $log_file && \
+                log_file="/var/run/xmineos.out"
+        echo "`date +%Y.%m.%d-%H:%M:%S` [@$host_name] [$$] $*" >> $log_file
+    }
+CONFPATH='/etc'
+JSON=`cat $CONFPATH/conf.json`
+############################################################
+## Getting GPU Count configured in your conf.json         ##
+############################################################
+GPU_COUNT=`echo $JSON | jq '.gpuSettings[] |  .GPU_ID' |wc -l`
+########################################################################################
+## Miner Settings Below - DO NOT EDIT, USE /etc/conf.json to change variables         ##
+########################################################################################
+minerPath=`echo $JSON | jq -r '.minerSettings[] | .mPath'`
+minerHost=`echo $JSON | jq -r '.minerSettings[] | .mHost'`
+minerPort=`echo $JSON | jq -r '.minerSettings[] | .mPort'`
+minerWallet=`echo $JSON | jq -r '.minerSettings[] | .mWallet'`
+minerWorker=`echo $JSON | jq -r '.minerSettings[] | .mWorker'`
+minerPass=`echo $JSON | jq -r '.minerSettings[] | .mPass'`
+minerOpts=`echo $JSON | jq -r '.minerSettings[] | .mOpts'`
+# END
+case "$1" in
+   --start)
+export GPU_MAX_HEAP_SIZE=100
+export GPU_USE_SYNC_OBJECTS=1
+export GPU_MAX_ALLOC_PERCENT=100
+screen -dmS ethminer $minerPath/ethminer -U -S $minerHost:$minerPort -O $minerWallet.$minerWorker:$minerPass $minerOpts
+Logger "Miner started with on $minerHost:$minerPort. Wallet: $minerWallet. Options $minerOpts"
+;;
+   --monitor)
+        Logger "Hit CTRL+C to exit"
+        sleep 2
+watch -n60 -t -d "nvidia-smi --query-gpu=index,pci.bus_id,clocks.current.graphics,clocks.current.memory,temperature.gpu,fan.speed,power.draw,power.limit,utilization.gpu,utilization.memory,pstate --format=csv"
+;;
+   --watchdog)
+########################################################################################
+## Setup crontab "*/5 * * * * /usr/local/bin/minermanager --watchdog >/dev/null"      ##
+########################################################################################
+x=0
+while [ $x -lt $GPU_COUNT ]; do
+POWER_THRESHOLD=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')| .PowTHD'`
+    Logger "Checking for dead GPUs..."
+    power_draw=$(nvidia-smi --id=$x --query-gpu=power.draw --format=csv,noheader,nounits)
+    if (( $(echo "$power_draw < $POWER_THRESHOLD" | bc -l) ))
+    then
+      Logger  "Power dropped below threshold (${POWER_THRESHOLD} W)!, GPU $x: $power_draw W, Restarting..."
+#################################################
+## Place "force_reboot.sh" in "/usr/local/bin" ##
+#################################################
+     /opt/mineOS/utils/force_reboot.sh
+    else
+      Logger "Normal power usage for GPU $x: $power_draw W"
+    fi
+x=$((x+1))
+done
+;;
+   --stop)
+screen -S ethminer -X quit
+Logger "Miner stopped"
+;;
+   --mstat)
+mStats=`screen -x ethminer -X hardcopy /tmp/miner && cat /tmp/miner | grep . | tail -n 10`
+Logger "Current status: $mStats"
+;;
+   --setclocks)
+x=0
+while [ $x -lt $GPU_COUNT ]; do
+####################
+## GPU VARIABLES  ##
+####################
+
+CoreOff=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')| .CoreOff'`
+MemOff=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')| .MemOff'`
+PowLim=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')| .PowLim'`
+
+minpLim=`nvidia-smi -i $x -q -d POWER |grep "Min Power Limit" |awk '{print $5}' | sed 's/.00//g'`
+maxpLim=`nvidia-smi -i $x -q -d POWER |grep "Max Power Limit" |awk '{print $5}' | sed 's/.00//g'`
+
+if [ $PowLim -ge $minpLim ] && [ $PowLim -le $maxpLim ]; then
+nvidia-smi -i $x -pm 0 >/dev/null
+nvidia-smi -i $x -pl $PowLim >/dev/null
+Logger "PowerLimit was set to $PowLim for GPU: $x"
+else
+Logger "Powerlimit is not supported on GPU: $x"
+fi
+	Logger "Enabling PowerMizerMode anyway"
+        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUPowerMizerMode=1 >/dev/null
+        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUGraphicsClockOffsetAllPerformanceLevels=$CoreOff >/dev/null
+	Logger "Core was clocked with Offset of $CoreOff for GPU: $x"
+        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUMemoryTransferRateOffsetAllPerformanceLevels=$MemOff >/dev/null
+        Logger "Memory was clocked with Offset of $MemOff for GPU: $x"
+x=$((x+1))
+done
+;;
+    --setfanspeed)
+x=0
+while [ $x -lt $GPU_COUNT ]; do
+TempTarget=`echo $JSON | jq '.gpuSettings[] |  select('.GPU_ID' == '$x')| .TempTarget'`
+FanSpeed=`echo $JSON | jq '.gpuSettings[] |  select('.GPU_ID' == '$x')| .MinFan'`
+GPU_FAN=`nvidia-smi -q --gpu=$x |grep "Fan Speed" | awk -F  " " '{print $4}' | tr -d '%'`
+GPU_TEMP=`nvidia-smi -q --gpu=$x |grep "GPU Current Temp" | awk -F  " " '{print $5}' | tr -d 'C'`
+# This is calculating current temp + target temp to adjust proper fanspeed
+    FAN_UP_STEP=30
+    FAN_DOWN_STEP=2
+
+DIFF=`echo "$((TempTarget-GPU_TEMP))" | sed 's/-//g'`
+
+if [ $DIFF -ge 7 ]; then
+    FAN_UP_STEP=100
+    FAN_DOWN_STEP=2
+elif [ $DIFF -ge 5 ]; then
+    FAN_UP_STEP=30
+    FAN_DOWN_STEP=1
+elif [ $DIFF -ge 4 ]; then
+    FAN_UP_STEP=12
+    FAN_DOWN_STEP=1
+elif [ $DIFF -ge 3 ]; then
+    FAN_UP_STEP=8
+    FAN_DOWN_STEP=1
+elif [ $DIFF -ge 2 ]; then
+    FAN_UP_STEP=1
+    FAN_DOWN_STEP=1
+elif [ $DIFF -ge 1 ]; then
+    FAN_UP_STEP=1
+    FAN_DOWN_STEP=0
+elif [ $DIFF -ge 0 ]; then
+    FAN_UP_STEP=0
+    FAN_DOWN_STEP=0
+
+fi
+
+NEW_GPU_FAN=$GPU_FAN
+
+    if [ $GPU_TEMP -gt $((TempTarget)) ]; then
+        NEW_GPU_FAN=$(( GPU_FAN + FAN_UP_STEP ))
+    fi
+
+    if [ $GPU_TEMP -lt $((TempTarget-2)) ]; then
+        NEW_GPU_FAN=$(( GPU_FAN - FAN_DOWN_STEP ))
+    fi
+
+
+if [ $NEW_GPU_FAN -le $FanSpeed ]; then
+    NEW_GPU_FAN=$FanSpeed
+fi
+
+if [ $NEW_GPU_FAN -ge 100 ]; then
+    NEW_GPU_FAN=100
+fi
+# End calculation its time to set proper fanspeed
+DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUFanControlState=1 -a [fan:$x]/GPUTargetFanSpeed=$NEW_GPU_FAN >/dev/null
+Logger "Fanspeed set to $NEW_GPU_FAN for GPU: $x"
+x=$((x+1))
+done
+;;
+	--gstat)
+x=0
+while [ $x -lt $GPU_COUNT ]; do
+statgclk=`nvidia-smi -i $x --query-gpu=clocks.gr --format=csv |tail -n +2`
+statmclk=`nvidia-smi -i $x --query-gpu=clocks.mem --format=csv |tail -n +2`
+statpwr=`nvidia-smi -i $x --query-gpu=power.draw --format=csv |tail -n +2`
+statpst=`nvidia-smi -i $x --query-gpu=pstate --format=csv |tail -n +2`
+statfan=`nvidia-smi -i $x --query-gpu=fan.speed --format=csv |tail -n +2`
+stattemp=`nvidia-smi -i $x --query-gpu=temperature.gpu --format=csv |tail -n +2`
+
+#
+# Not all(very few) nVidia Pascal GPUs support voltage monitor on linux so I will not bother adding it
+#
+Logger "Current nVidia GPU: $x Core Clock is: $statgclk"
+Logger "Current nVidia GPU: $x Memory Clock is: $statmclk"
+Logger "Current nVidia GPU: $x Power Usage is: $statpwr"
+Logger "Current nVidia GPU: $x Power State is: $statpst"
+Logger "Current nVidia GPU: $x Fan Speed is: $statfan"
+Logger "Current nVidia GPU: $x Temperature is: $stattemp C"
+x=$((x+1))
+done
+;;
+	--list)
+NVLST=`lspci -n -v | grep -c "0300: 10de"`
+if [ $NVLST -gt 0 ]; then
+  NV_DESC=`nvidia-smi -L`
+Logger "Found nVidia GPUs:
+$NV_DESC"
+else
+Logger "No nVidia GPUS Found"
+fi
+;;
+	--help|-h|*)
+	echo "Usage: '--start','--stop' to start or stop miner"
+	echo "Usage: '--mstat' to view current mining stats and '--watchdog' to check for dead GPUs"
+        echo "Usage: '--setclocks', '--setfanspeed' to apply settings per GPU defined in conf.json"
+        echo "Usage: '--gstat', '--list', '--monitor' for current GPU stats"
+	echo -e "Feel free to donate a beer or two to my BTC Address: \033[1m172BTaR7kwHhHGfqYkirW1SeuwbNzXf3fX\033[0m"
+	echo "Enjoy!"
+	exit 0
+;;
+esac
+exit 0

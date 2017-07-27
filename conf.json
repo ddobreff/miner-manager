@@ -1,0 +1,73 @@
+{
+        "_comment": "This is simple JSON configuration for 6 NVIDIA GPUs and Wallet,Stratum,Opts",
+        "_comment1": "Valid CoreOff and MemOff are usually from -200 to 200 for CoreOff and from -400 to 1800 for MemOff, Normal setup for ethminer is -150 CoreOff and 750-1600 MemOff",
+	"_comment2": "If you find it useful feel free to donate some BTC to 172BTaR7kwHhHGfqYkirW1SeuwbNzXf3fX . Thanks ",
+        "minerSettings": [
+                        {
+                        "mPath": "\/home\/miner\/ethminer",
+                        "mHost": "eu1.ethermine.org",
+                        "mPort": "4444",
+                        "mWallet": "0x1c60C69aB5d8984B8fB6f7435103606bCE2F7Ac8",
+			"mWorker": "xMiner1",
+                        "mPass": "x",
+                        "mOpts": "--farm-recheck 2000 -FS eu2.ethermine.org:4444"
+                        }
+                      ],
+        "gpuSettings": [
+                        {
+                        "GPU_ID": 0,
+                        "CoreOff": 0,
+                        "MemOff": 0,
+                        "PowLim": 80,
+			"PowTHD": 50,
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        },
+                        {
+                        "GPU_ID": 1,
+                        "CoreOff": 0,
+                        "MemOff": 0,
+                        "PowLim": 80,
+                        "PowTHD": 50,
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        },
+                        {
+                        "GPU_ID": 2,
+                        "CoreOff": 0,
+                        "MemOff": 0,
+                        "PowLim": 80,
+                        "PowTHD": 50,
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        },
+                        {
+                        "GPU_ID": 3,
+                        "CoreOff": 0,
+                        "MemOff": 0,
+                        "PowLim": 80,
+                        "PowTHD": 50,
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        },
+                        {
+                        "GPU_ID": 4,
+                        "CoreOff": 0,
+                        "MemOff": 0,
+                        "PowLim": 80,
+                        "PowTHD": 50,
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        },
+                        {
+                        "GPU_ID": 5,
+                        "CoreOff": 0,
+                        "MemOff": 0,
+                        "PowLim": 80,
+                        "PowTHD": 50,
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        }
+
+                ]
+}
