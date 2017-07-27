@@ -85,8 +85,8 @@ CoreOff=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')| .CoreO
 MemOff=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')| .MemOff'`
 PowLim=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')| .PowLim'`
 
-minpLim=`nvidia-smi -i $x -q -d POWER |grep "Min Power Limit" |awk '{print $5}' | sed 's/.00//g'`
-maxpLim=`nvidia-smi -i $x -q -d POWER |grep "Max Power Limit" |awk '{print $5}' | sed 's/.00//g'`
+minpLim=`nvidia-smi -i $x -q -d POWER |grep "Min Power Limit" |awk '{print $5}' | cut -d"." -f1  |xargs`
+maxpLim=`nvidia-smi -i $x -q -d POWER |grep "Max Power Limit" |awk '{print $5}' | cut -d"." -f1  |xargs`
 
 if [ $PowLim -ge $minpLim ] && [ $PowLim -le $maxpLim ]; then
 nvidia-smi -i $x -pm 0 >/dev/null
