@@ -63,7 +63,7 @@ POWER_THRESHOLD=`echo $JSON | jq -r '.gpuSettings[] |  select('.GPU_ID' == '$x')
 #################################################
 ## Place "force_reboot.sh" in "/usr/local/bin" ##
 #################################################
-     /opt/mineOS/utils/force_reboot.sh
+     /usr/local/bin/force_reboot.sh
     else
       Logger "Normal power usage for GPU $x: $power_draw W"
     fi
