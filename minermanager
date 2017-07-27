@@ -1,9 +1,5 @@
 #!/bin/bash
 ##########################################################################
-##    IF you like this tool, feel free to donate a beer or two          ##
-##    to my BTC Address:  172BTaR7kwHhHGfqYkirW1SeuwbNzXf3fX            ##
-##########################################################################
-# Copyright Dobromir Dobrev &copy 2017 : dobreff@gmail.com		##
 # NVIDIA requires Xorg server to run and packge jq is 			##
 # also required for parsing config  "apt install jq"			##
 # Generate /etc/X11/xorg.conf by using this command: 			##
