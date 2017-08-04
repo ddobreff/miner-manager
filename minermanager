@@ -202,7 +202,6 @@ fi
 	echo "Usage: '--mstat' to view current mining stats and '--watchdog' to check for dead GPUs"
         echo "Usage: '--setclocks', '--setfanspeed' to apply settings per GPU defined in conf.json"
         echo "Usage: '--gstat', '--list', '--monitor' for current GPU stats"
-	echo -e "Feel free to donate a beer or two to my BTC Address: \033[1m172BTaR7kwHhHGfqYkirW1SeuwbNzXf3fX\033[0m"
 	echo "Donation addresses"
 	echo -e "Zec: \033[1mt1WMvBRutsSCW3c4p6uFvx6SP7nQDJPBdCc\033[0m"
 	echo -e "Ether: \033[1m0xE1D39706a292a349D719E9f63dB04eB0a6E09c9D\033[0m"
