@@ -1,7 +1,6 @@
 {
         "_comment": "This is simple JSON configuration for 6 NVIDIA GPUs and Wallet,Stratum,Opts",
         "_comment1": "Valid CoreOff and MemOff are usually from -200 to 200 for CoreOff and from -400 to 1800 for MemOff, Normal setup for ethminer is -150 CoreOff and 750-1600 MemOff",
-	"_comment2": "If you find it useful feel free to donate some BTC to 172BTaR7kwHhHGfqYkirW1SeuwbNzXf3fX . Thanks ",
         "minerSettings": [
                         {
                         "mPath": "\/home\/miner\/ethminer",
