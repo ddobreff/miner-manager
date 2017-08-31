@@ -205,7 +205,7 @@ fi
 	echo "Donation addresses"
 	echo -e "Zec: \033[1mt1WMvBRutsSCW3c4p6uFvx6SP7nQDJPBdCc\033[0m"
 	echo -e "Ether: \033[1m0xE1D39706a292a349D719E9f63dB04eB0a6E09c9D\033[0m"
-	echo -e "BTC: \033[1m172BTaR7kwHhHGfqYkirW1SeuwbNzXf3fX\033[0m"
+	echo -e "BTC: \033[1m3KpA1zs7W6hd2YYqXFHX5cjyLTi8nBKpZN\033[0m"
 	echo -e "LTC: \033[1mM9r2gXp6N1tvbbaKmQ5CVYBEAEzUsx9Nps\033[0m"
 	echo "Enjoy!"
 	exit 0
