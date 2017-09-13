@@ -151,10 +151,10 @@ Logger "Powerlimit is not supported on GPU: $x"
 fi
 	Logger "Enabling PowerMizerMode anyway"
         DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUPowerMizerMode=1 >/dev/null
-        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUGraphicsClockOffsetAllPerformanceLevels=$CoreOff >/dev/null
-	Logger "Core was clocked with Offset of $CoreOff for GPU: $x"
-        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUMemoryTransferRateOffsetAllPerformanceLevels=$MemOff >/dev/null
-        Logger "Memory was clocked with Offset of $MemOff for GPU: $x"
+        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUGraphicsClockOffsetAllPerformanceLevels=$Core >/dev/null
+	Logger "Core was clocked with Offset of $Core for GPU: $x"
+        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUMemoryTransferRateOffsetAllPerformanceLevels=$Mem >/dev/null
+        Logger "Memory was clocked with Offset of $Mem for GPU: $x"
 elif [ $Vendor == "amdgpu" ]; then
 Core=`echo $JSON | jq -r '.amdgpu[] | .gpuSettings[] |  select('.gpu_id' == '$x')| .Core'`
 Mem=`echo $JSON | jq -r '.amdgpu[] | .gpuSettings[] |  select('.gpu_id' == '$x')| .Mem'`
