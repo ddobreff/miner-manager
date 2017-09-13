@@ -14,7 +14,7 @@ Logger(){
                 log_file="/var/run/xmineos.out"
         echo "`date +%Y.%m.%d-%H:%M:%S` [@$host_name] [$$] $*" >> $log_file
     }
-CONFPATH='.'
+CONFPATH='/etc'
 JSON=`cat $CONFPATH/conf.json`
 Vendor=`echo $JSON | jq -r .gpuVendor`
 ############################################################
