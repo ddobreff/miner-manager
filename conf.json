@@ -1,9 +1,12 @@
 {
-        "_comment": "This is simple JSON configuration for 6 NVIDIA GPUs and Wallet,Stratum,Opts",
-        "_comment1": "Valid CoreOff and MemOff are usually from -200 to 200 for CoreOff and from -400 to 1800 for MemOff, Normal setup for ethminer is -150 CoreOff and 750-1600 MemOff",
+        "_comment": "This is simple JSON configuration for 6 NVIDIA or AMD GPUs and Wallet,Stratum,Opts",
+	"gpuVendor": "amdgpu",
         "minerSettings": [
                         {
-                        "mPath": "\/home\/miner\/ethminer",
+			"miner": "ethminer",
+			"mAlgo": "ethash",
+			"mSSL": "disabled",
+                        "mPath": "\/opt\/miners",
                         "mHost": "eu1.ethermine.org",
                         "mPort": "4444",
                         "mWallet": "0x1c60C69aB5d8984B8fB6f7435103606bCE2F7Ac8",
@@ -12,61 +15,81 @@
                         "mOpts": "--farm-recheck 2000 -FS eu2.ethermine.org:4444"
                         }
                       ],
-        "gpuSettings": [
+	"nvidia": [
+	    {
+	        "gpuSettings": [
                         {
-                        "GPU_ID": 0,
-                        "CoreOff": 0,
-                        "MemOff": 0,
-                        "PowLim": 80,
-			"PowTHD": 50,
-                        "MinFan": 60,
-                        "TempTarget": 70
-                        },
-                        {
-                        "GPU_ID": 1,
-                        "CoreOff": 0,
-                        "MemOff": 0,
+                        "gpu_id": 0,
+                        "Core": 0,
+                        "Mem": 0,
                         "PowLim": 80,
                         "PowTHD": 50,
                         "MinFan": 60,
                         "TempTarget": 70
                         },
                         {
-                        "GPU_ID": 2,
-                        "CoreOff": 0,
-                        "MemOff": 0,
+                        "gpu_id": 1,
+                        "Core": 0,
+                        "Mem": 0,
                         "PowLim": 80,
                         "PowTHD": 50,
                         "MinFan": 60,
                         "TempTarget": 70
                         },
                         {
-                        "GPU_ID": 3,
-                        "CoreOff": 0,
-                        "MemOff": 0,
+                        "gpu_id": 2,
+                        "Core": 0,
+                        "Mem": 0,
                         "PowLim": 80,
                         "PowTHD": 50,
                         "MinFan": 60,
                         "TempTarget": 70
                         },
                         {
-                        "GPU_ID": 4,
-                        "CoreOff": 0,
-                        "MemOff": 0,
+                        "gpu_id": 3,
+                        "Core": 0,
+                        "Mem": 0,
                         "PowLim": 80,
                         "PowTHD": 50,
                         "MinFan": 60,
                         "TempTarget": 70
                         },
                         {
-                        "GPU_ID": 5,
-                        "CoreOff": 0,
-                        "MemOff": 0,
+                        "gpu_id": 4,
+                        "Core": 0,
+                        "Mem": 0,
+                        "PowLim": 80,
+                        "PowTHD": 50,
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        },
+                        {
+                        "gpu_id": 5,
+                        "Core": 0,
+                        "Mem": 0,
                         "PowLim": 80,
                         "PowTHD": 50,
                         "MinFan": 60,
                         "TempTarget": 70
                         }
-
-                ]
+                 ]
+            }
+         ],
+	"amdgpu": [
+	    {
+	       "gpuSettings": [
+                        {
+                        "gpu_id": 0,
+                        "Core": 0,
+                        "Mem": 0,
+                        "PTune": 0,
+                        "PTHD": 50,
+			"Series": 500,
+			"gpu_volt": "0.900",
+                        "MinFan": 60,
+                        "TempTarget": 70
+                        }
+	          ]
+            }
+        ]
 }
