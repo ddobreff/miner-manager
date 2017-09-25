@@ -54,7 +54,7 @@ if [ $miner == "ethminer" ] && [ $Vendor == "nvidia" ]; then
 elif  [ $miner == "ethminer" ] && [ $Vendor == "amdgpu" ]; then
 	screen -dmS miner $minerPath/ethminer/ethminer -G -RH -S $minerHost:$minerPort -O $minerWallet.$minerWorker:$minerPass $minerOpts
 elif [ $miner == "ewbf" ] && [ $Vendor == "nvidia" ]; then
-	screen -dmS miner $minerPath/ewbf/miner --server $minerHost --port $minerPort -user $minerWallet.$minerWorker --pass $minerPass $minerOpts
+	screen -dmS miner $minerPath/ewbf/miner --server $minerHost --port $minerPort --user $minerWallet.$minerWorker --pass $minerPass $minerOpts
 elif [ $miner == "claymore" ] && [ $Vendor == "amdgpu" ] && [ $minerAlgo == "equihash" ] && [ $minerSSL == "enabled" ]; then
 	screen -dmS miner $minerPath/claymore-equihash/zecminer64 -zpool ssl://$minerHost:$minerPort -zwal $minerWallet.$minerWorker -zpsw $minerPass $minerOpts
 elif [ $miner == "claymore" ] && [ $Vendor == "amdgpu" ] && [ $minerAlgo == "equihash" ] && [ $minerSSL == "disabled" ]; then
