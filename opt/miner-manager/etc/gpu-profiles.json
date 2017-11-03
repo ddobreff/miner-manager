@@ -1,0 +1,26 @@
+{
+"nvidia_profiles":       [
+
+                {
+                        "prof_id": 0,
+                        "name": "nVidia Default stock profile",
+                        "coreoc": "0",
+                        "memoc": "0",
+                        "powlim": "0",
+                        "powthd": "50"
+                }
+ ],
+
+"amdgpu_profiles":       [
+                {
+                        "prof_id": 0,
+                        "name": "RX Defaults BIOS modded",
+                        "coreoc": "0",
+                        "memoc": "0",
+                        "powtune": "0",
+                        "powthd": "50"
+                }
+    ]
+}
+
+

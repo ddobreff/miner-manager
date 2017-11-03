@@ -1,0 +1,48 @@
+#!/bin/bash
+source /opt/miner-manager/inc/functions.inc
+
+# Checking if config exists and if not executing
+if [ ! -f $mOScfg/gpu-config.json ]; then
+infologger "GPU Config file missing - Creating..."
+	print_gpu_profiles
+	print_miners
+	# Looping for nVidia GPUs
+	if [ $nvi_count -gt 0 ]; then
+		infologger "\033[1mListing nVidia GPU(s)...\033[0m"
+		loop_nviget_model $nvi_count
+	else
+		infologger "No Nvidia GPUs avialable on the system!"
+	fi
+	# Looping for AMD GPUs
+	if [ $amd_count -gt 0 ]; then
+                infologger "\033[1mListing AMD GPU(s)...\033[0m"
+		loop_amdget_model $amd_count
+	else
+		infologger "No AMD GPUs avialable on the system!"
+	fi
+
+	# Getting Total GPUs count
+	if [ $totalgpus -gt 0 ]; then
+	        infologger "You have total of $totalgpus GPU(s) in the system!"
+	else
+		infologger "No GPUs found on the system"
+	fi
+
+	# JSON config generation
+	if [ $totalgpus -gt 0 ]; then
+		infologger "Generating nVidia settings section..."
+		gen_nvi_section $nvi_count
+	        infologger "Generating AMD settings section..."
+		gen_amd_section $amd_count
+	else
+		infologger "No GPUs found so empty sections will be applied!"
+	fi
+	setuplogger "\033[1mCongratulations! You have successfully setup minermanager!\033[0m\n"
+	setuplogger "\033[1mYour current miner ID is [ $miner_id ]\033[0m!\n"
+        setuplogger "\033[1mTHIS IS STILL ALPHA SOFTWARE!!! ENJOY WITH CAUTION\033[0m\n"
+	/opt/miner-manager/bin/minermanager --help
+else
+	infologger "\033[1mMinermanager is configured correctly!\033[0m!"
+	/opt/miner-manager/bin/minermanager --help
+fi
+exit 0

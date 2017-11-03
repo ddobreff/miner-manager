@@ -1,0 +1,68 @@
+#!/bin/bash
+source  /opt/miner-manager/inc/functions.inc
+
+case "$1" in
+   --start)
+	miner_start $miner_id
+;;
+   --powerinfo)
+       if [ $nvi_count -gt 0 ]; then
+                nvi_hw_powerinfo $nvi_count
+       fi
+       if [ $amd_count -gt 0 ]; then
+                amd_hw_powerinfo $amd_count
+       fi
+;;
+   --watchdog)
+        activate_watchdog_cycle
+;;
+   --stop)
+	miner_stop
+;;
+   --monitor)
+	screen -x miner -X hardcopy /tmp/miner && cat /tmp/miner | grep . | tail -n 10
+;;
+   --setclocks)
+        if [ $nvi_count -gt 0 ]; then
+	nvi_powerlimit $nvi_count
+	sleep 0.5
+        nvi_core_clock $nvi_count
+	sleep 0.5
+	nvi_memory_clock $nvi_count
+        fi
+
+        if [ $amd_count -gt 0 ]; then
+        amd_corepower_clock $amd_count
+	sleep 0.5
+	amd_memory_clock $amd_count
+        fi
+;;
+    --setfanspeed)
+        if [ $nvi_count -gt 0 ]; then
+		set_nvi_fanspeed $nvi_count
+        fi
+        if [ $amd_count -gt 0 ]; then
+                set_amd_fanspeed $amd_count
+        fi
+;;
+	--status)
+        if [ $nvi_count -gt 0 ]; then
+                get_nvi_stats $nvi_count
+        fi
+        if [ $amd_count -gt 0 ]; then
+                get_amd_stats $amd_count
+        fi
+;;
+	--list)
+	total_gpu_list
+;;
+        --help|-h)
+        show_help
+;;
+        --version|-v|*)
+        show_version
+;;
+
+esac
+exit 0
+

@@ -1,0 +1,43 @@
+{
+         "_comment": "This is global config file if it doesn't exist it will be automatically generated",
+         "globalConfig": [
+        {
+                "active_config": 1,
+                "rig_email": "demo@demo.com",
+                "rig_hostname": "demorig",
+                "miner_profile": 7,
+                "nvidia_profile_id": 1,
+                "amdgpu_profile_id": 0,
+                "minfan": "55",
+                "temptarget": "65",
+                "telegram_botid": "NOT IN FREE VERSION",
+                "telegram_api_key": "NOT IN FREE VERSION",
+                "telegram_hr_chatid": "NOT IN FREE VERSION",
+                "telegram_rb_chatid": "NOT IN FREE VERSION",
+                "telegram_cr_chatid": "NOT IN FREE VERSION",
+                "update_url": "NOT IN FREE VERSION",
+                "update_user": "none",
+                "update_pass": "none"
+        },
+       {
+		"_comment1": "Disabled profile!",
+                "active_config": 0,
+                "rig_email": "test@minegate.eu",
+                "rig_hostname": "demorig2",
+                "miner_profile": 5,
+                "nvidia_profile_id": 0,
+                "amdgpu_profile_id": 0,
+                "minfan": "60",
+                "temptarget": "65",
+                "telegram_botid": "NOT IN FREE VERSION",
+                "telegram_api_key": "NOT IN FREE VERSION",
+                "telegram_hr_chatid": "NOT IN FREE VERSION",
+                "telegram_rb_chatid": "NOT IN FREE VERSION",
+                "telegram_cr_chatid": "NOT IN FREE VERSION",
+                "update_url": "NOT IN FREE VERSION",
+                "update_user": "none",
+                "update_pass": "none"
+        }
+    ]
+}
+

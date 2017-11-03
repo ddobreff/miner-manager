@@ -1,0 +1,49 @@
+{
+	 "minerSettings":
+		 [
+
+{
+                 "miner_id": 0,
+		 "miner_name": "EWBF ZEC Miner",
+                 "miner_stat_id": "ewbf",
+                 "miner_bin": "\/opt\/miners\/ewbf\/miner",
+                 "miner_cmd": "--server eu1-zcash.flypool.org --port 3333 --user t1YYJhYKB4BEatmjoPxLA8UmftXM64uNSa6.donate --pass x --templimit 85 --api 127.0.0.1:4029 --pec --tempunits C --fee 0 --eexit 3"
+	 },
+{
+                 "miner_id": 1,
+                 "miner_name": "DSTM Zec miner",
+                 "miner_stat_id": "dstm",
+                 "miner_bin": "\/opt\/miners\/dstm\/zm",
+                 "miner_cmd": "--server eu1-zcash.flypool.org --port 3333 --user t1YYJhYKB4BEatmjoPxLA8UmftXM64uNSa6.donate --pass x --telemetry=127.0.0.1:4029"
+	 },
+{
+                 "miner_id": 2,
+                 "miner_name": "tpruvot ccminer for algo LBRY",
+                 "miner_stat_id": "ccminer",
+                 "miner_bin": "\/opt\/miners\/ccminer\/bin\/ccminer",
+                 "miner_cmd": "-a lbry -o stratum+tcp://yiimp.eu:3334 -O bXnjCQvFjbYXkKGggoXkYT535q6JEaTZoi.donate:x -i 21 --api-bind 4029"
+	 },
+{
+                 "miner_id": 6,
+                 "miner_name": "ethminer by ethminer-mining community for CUDA devices",
+                 "miner_stat_id": "claymore-ethash",
+                 "miner_bin": "\/opt\/miners\/ethminer\/ethminer",
+                 "miner_cmd": "-U -RH -HWMON -S eu1.ethermine.org:4444 -O 0x675b33207049e90422b87fc8da0c63497c92af2e.donate:x --farm-recheck 5000 --api-port -4029 -FS eu2.ethermine.org:4444 --cuda-grid-size 4096"
+	 },
+
+{
+                 "miner_id": 7,
+                 "miner_name": "Claymore Ethereum Dual Miner AMD startup",
+                 "miner_stat_id": "claymore-ethash",
+                 "miner_bin": "\/opt\/miners\/claymore-ethash\/ethdcrminer64",
+                 "miner_cmd": "-epool eu1.ethermine.org:4444 -ewal 0x675b33207049e90422b87fc8da0c63497c92af2e -eworker donate -epsw x -dbg -1 -mode 1 -etha 2 -dcri 7 -r 1 -mport -4029"
+         },
+{
+                 "miner_id": 8,
+                 "miner_name": "Claymore AMD cryptonote miner Nicehash test",
+                 "miner_stat_id": "claymore-cryptonote",
+                 "miner_bin": "\/opt\/miners\/claymore-cryptonote\/nsgpucnminer",
+                 "miner_cmd": "-xpool stratum+tcp://cryptonight.eu.nicehash.com:3355 -xwal 3KpA1zs7W6hd2YYqXFHX5cjyLTi8nBKpZN.donate -xpsw x -dbg -1 -r 1 -mport -4029"
+         }
+    ]
+}
