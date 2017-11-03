@@ -165,7 +165,7 @@ x=0
  if (( $(echo "$power_draw < $POWER_THREASHOLD" | bc -l) ))
         then
            infologger  "Power dropped below threshold (${POWER_THREASHOLD} W)!, nVidia GPU $x: $power_draw W, Activating watchdog cycle!"
-           activate_watchdog_cycle
+           activate_watchdog_cycle && break
    else
            infologger "Normal power usage for nVidia GPU $x: $power_draw W"
    fi
@@ -183,7 +183,7 @@ x=0
  if (( $(echo "$power_draw < $POWER_THREASHOLD" | bc -l) ))
         then
            infologger  "Power dropped below threshold (${POWER_THREASHOLD} W)!, AMD GPU $x: $power_draw W, Activating watchdog cycle!"
-           activate_watchdog_cycle
+           activate_watchdog_cycle && break
    else
            infologger "Normal power usage for AMD GPU $x: $power_draw W"
    fi
