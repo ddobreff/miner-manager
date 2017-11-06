@@ -387,7 +387,7 @@ while [ $x -lt $1 ]; do
         FanSpeed=$(echo `cat $mOScfg/gpu-config.json` | jq '.nvidia[] | .gpuSettings[] |  select('.gpu_id' == '$x')| .MinFan')
         RealTemp=$(/usr/bin/nvidia-smi -i $x -q -d TEMPERATURE | grep "Current" | sed 's/[^0-9]*//g')
         RealFanRaw=$(/usr/bin/nvidia-smi -i $x -q |grep -i fan | sed 's/[^0-9]*//g')
-        RealFan=$(bc <<< "scale=2; ($RealFanRaw/255)*100" | cut -d \. -f 1) # Using AMD syfs style
+        RealFan=$(bc <<< "scale=2; ($RealFanRaw*255/100)" | cut -d \. -f 1) # Using AMD syfs style
         FanCalc=$(bc <<< "scale=2; ($RealTemp/$TempTarget)*100" |cut -d \. -f 1)
         NewFanRaw=$(decide_fanspeed $FanCalc $RealFan $RealFanRaw $FanSpeed) # Sending AMD sysfs style
         NewFan=$(bc <<< "scale=2; ($NewFanRaw/255)*100" | cut -d \. -f 1) # Converting back to normal
