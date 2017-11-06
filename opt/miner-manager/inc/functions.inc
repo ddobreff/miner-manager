@@ -333,26 +333,25 @@ function nvi_memory_clock() {
 #}
 
 function decide_fanspeed() {
-        RT=$1
-        RF=$2
-        FR=$3
-        FS=$4
-        NewFan="$RF";
-        [ "$RT" -lt 90 ] && NewFan=`expr "$RF" - 30`;
-        [ "$RT" -lt 92 ] && NewFan=`expr "$RF" - 20`;
-        [ "$RT" -lt 96 ] && NewFan=`expr "$RF" - 10`;
-        [ "$RT" -gt 103 ] && NewFan=`expr "$RF" + 10`;
-        [ "$RT" -gt 106 ] && NewFan=`expr "$RF" + 20`;
-        [ "$RT" -gt 108 ] && NewFan=`expr "$RF" + 30`;
-        [ "$RT" -gt 110 ] && NewFan=200;
-        [ "$RT" -gt 120 ] && NewFan=250;
-        [ "$NewFan" -gt 250 ] && NewFan=250;
-        [ "$NewFan" -lt 50 ] && NewFan=50;
-        if [ $FR -le $FS ]; then
-           NewFan=$((FS*255/100))
-        echo "$NewFan";
+        RealTemp=$1
+        RealFan=$2
+        FanSpeed=$3
+        NewFanSpeed="$RealFan";
+        [ "$RealTemp" -lt 90 ] && NewFanSpeed=`expr "$RealFan" - 10`;
+        [ "$RealTemp" -lt 92 ] && NewFanSpeed=`expr "$RealFan" - 7`;
+        [ "$RealTemp" -lt 96 ] && NewFanSpeed=`expr "$RealFan" - 3`;
+        [ "$RealTemp" -gt 103 ] && NewFanSpeed=`expr "$RealFan" + 3`;
+        [ "$RealTemp" -gt 106 ] && NewFanSpeed=`expr "$RealFan" + 7`;
+        [ "$RealTemp" -gt 108 ] && NewFanSpeed=`expr "$RealFan" + 10`;
+        [ "$RealTemp" -gt 110 ] && NewFanSpeed=80;
+        [ "$RealTemp" -gt 120 ] && NewFanSpeed=100;
+        [ "$NewFanSpeed" -gt 100 ] && NewFanSpeed=100;
+        [ "$NewFanSpeed" -lt 20 ] && NewFanSpeed=20;
+        if [ $RealFan -le $FanSpeed ]; then
+           NewFanSpeed=$FanSpeed
+        echo "$NewFanSpeed";
         else
-        echo "$NewFan";
+        echo "$NewFanSpeed";
         fi
 }
 
@@ -363,22 +362,20 @@ while [ $x -lt $1 ]; do
         FanSpeed=$(echo `cat $mOScfg/gpu-config.json` | jq '.amdgpu[] | .gpuSettings[] |  select('.gpu_id' == '$x')| .MinFan')
  if [ -f /sys/class/drm/card$x/device/hwmon/hwmon?/pwm1 ] && [ -f /sys/class/drm/card$x/device/hwmon/hwmon?/temp1_input ]; then
         RealTemp=$((`cat /sys/class/drm/card$x/device/hwmon/hwmon?/temp1_input`/1000))
-        RealFan=$(cat /sys/class/drm/card$x/device/hwmon/hwmon?/pwm1)
+        RealFanRaw=$(cat /sys/class/drm/card$x/device/hwmon/hwmon?/pwm1)
+        RealFan=$(bc <<< "scale=2; ($RealFanRaw/255)*100" | cut -d \. -f 1)
         FanCalc=$(bc <<< "scale=2; ($RealTemp/$TempTarget)*100" |cut -d \. -f 1)
-        FanPercent=$(bc <<< "scale=2; ($RealFan/255)*100" | cut -d \. -f 1)
-        NewFan=$(decide_fanspeed $FanCalc $RealFan $FanPercent $FanSpeed)
-        NewFanPercent=$(bc <<< "scale=2; ($NewFan/255)*100" | cut -d \. -f 1)
-        echo $NewFan > /sys/class/drm/card$x/device/hwmon/hwmon?/pwm1
+        NewFanSpeed=$(decide_fanspeed $FanCalc $RealFan $FanSpeed)
+        NewFanSysFS=$(bc <<< "scale=2; ($NewFanSpeed*255/100)" | cut -d \. -f 1)
+        echo $NewFanSysFS > /sys/class/drm/card$x/device/hwmon/hwmon?/pwm1
  else
-        $mOSbin/igpu_fanspeed.sh && break # It won't apply fanspeed for some gpus if iGPU is enabled(simple fix)
-        infologger "Internal GPU is activated dropping to old fanspeed script"
+        infologger "GPU $x does not support fansetting! Falling back to iGPU fix"
+        $mOSbin/igpu_fanspeed.sh && break # set break else it will continue cycle - this one sets for all GPUs
  fi
-        infologger "Setting Fanspeed to $NewFanPercent% for GPU: $x"
+        infologger "Setting Fanspeed to $NewFanSpeed% for GPU: $x"
  x=$((x+1))
  done
 }
-
-
 
 function set_nvi_fanspeed() {
 x=0
@@ -386,13 +383,11 @@ while [ $x -lt $1 ]; do
         TempTarget=$(echo `cat $mOScfg/gpu-config.json` | jq '.nvidia[] | .gpuSettings[] |  select('.gpu_id' == '$x')| .TempTarget')
         FanSpeed=$(echo `cat $mOScfg/gpu-config.json` | jq '.nvidia[] | .gpuSettings[] |  select('.gpu_id' == '$x')| .MinFan')
         RealTemp=$(/usr/bin/nvidia-smi -i $x -q -d TEMPERATURE | grep "Current" | sed 's/[^0-9]*//g')
-        RealFanRaw=$(/usr/bin/nvidia-smi -i $x -q |grep -i fan | sed 's/[^0-9]*//g')
-        RealFan=$(bc <<< "scale=2; ($RealFanRaw*255/100)" | cut -d \. -f 1) # Using AMD syfs style
+        RealFan=$(/usr/bin/nvidia-smi -i $x -q |grep -i fan | sed 's/[^0-9]*//g')
         FanCalc=$(bc <<< "scale=2; ($RealTemp/$TempTarget)*100" |cut -d \. -f 1)
-        NewFanRaw=$(decide_fanspeed $FanCalc $RealFan $RealFanRaw $FanSpeed) # Sending AMD sysfs style
-        NewFan=$(bc <<< "scale=2; ($NewFanRaw/255)*100" | cut -d \. -f 1) # Converting back to normal
-        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUFanControlState=1 -a [fan:$x]/GPUTargetFanSpeed=$NewFan >/dev/null
-        infologger "Setting Fanspeed to $NewFan % for GPU: $x"
+        NewFanSpeed=$(decide_fanspeed $FanCalc $RealFan $FanSpeed)
+        DISPLAY=:0.$x /usr/bin/nvidia-settings -a [gpu:$x]/GPUFanControlState=1 -a [fan:$x]/GPUTargetFanSpeed=$NewFanSpeed >/dev/null
+        infologger "Setting Fanspeed to $NewFanSpeed% for GPU: $x"
 x=$((x+1))
 done
 }
