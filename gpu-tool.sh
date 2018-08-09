@@ -13,7 +13,7 @@
 AMDGPU_COUNT=`/usr/bin/lspci -n -v |egrep -ic "0300: 1002"`
 NVIDIA_COUNT=`/usr/bin/lspci -n -v |egrep -ic "0300: 10de|0302: 10de"`
 TOTAL_COUNT=$( expr $NVIDIA_COUNT + $AMDGPU_COUNT )
-API_PORT=4029
+API_PORT=3333
 CLAYMORE_API=$(echo '{"id":0,"jsonrpc":"2.0","method":"miner_getstat1"}' | nc localhost $API_PORT)
 TOTAL_HASH=$(echo "${CLAYMORE_API}"|jq -r '.result[2] | split(";")[0]|tonumber / 1000')
 GPU_NUM=$*
@@ -135,7 +135,7 @@ fi
 }
 
 function show_help() {
-        echo -e "Usage: '--efficiency','--detect *gpunum*'"
+        echo -e "Usage: '--efficiency','--detect-amd', '--detect-nv'"
 }
 
 case "$1" in
