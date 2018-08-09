@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright 2018 Dobromir Dobrev <dobreff@gmail.com>
 # This tool provides advanced monitoring for AMD and NVIDIA graphics
-# For simplemining and any other linux OS using ohgodatool
+# For simplemining and any other linux OS.
 # This tool is provided without ANY warranty, guarantee and support
 # It falls under the GPL v3.0 license
 # You can use, abuse, modify or whatever you want with it.
@@ -10,13 +10,13 @@
 # LTC: M9r2gXp6N1tvbbaKmQ5CVYBEAEzUsx9Nps
 # Enjoy!
 
-DAMN_IGPU=$(lspci | grep -E "Display controller|VGA|3D controller" | head -n 1 | grep -vE "NVIDIA|AMD" |wc -l)
 AMDGPU_COUNT=`/usr/bin/lspci -n -v |egrep -ic "0300: 1002"`
 NVIDIA_COUNT=`/usr/bin/lspci -n -v |egrep -ic "0300: 10de|0302: 10de"`
 TOTAL_COUNT=$( expr $NVIDIA_COUNT + $AMDGPU_COUNT )
-API_PORT=3333
+API_PORT=4029
 CLAYMORE_API=$(echo '{"id":0,"jsonrpc":"2.0","method":"miner_getstat1"}' | nc localhost $API_PORT)
 TOTAL_HASH=$(echo "${CLAYMORE_API}"|jq -r '.result[2] | split(";")[0]|tonumber / 1000')
+GPU_NUM=$*
 
 Printer(){
         test -t 1 && echo -e "\033[1m $* \033[0m"
@@ -30,27 +30,22 @@ ipAddress=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print 
 function show_amd_stats() {
 x=0
 while [ $x -lt $1 ]; do
-devid=$x
-if [ $DAMN_IGPU -gt 0 ]; then
-       devid=$((devid+1))
-fi
-        if [ -f /sys/class/drm/card$devid/device/pp_table ]; then
-                GPU_CORE=`cat /sys/class/drm/card$devid/device/pp_dpm_sclk |grep "*" | awk -F  " " '{print $2}' | tr -d 'Mhz' | tr '\n' ' '`
-                GPU_MEMORY=`cat /sys/class/drm/card$devid/device/pp_dpm_mclk |grep "*" | awk -F  " " '{print $2}' | tr -d 'Mhz' | tr '\n' ' '`
-        fi
+devid=$((x+1))
+pci_id=$(lspci -n | grep 1002: | egrep -v "\.1" |awk '{print $1}' |sed -n ${devid}p)
+                GPU_CORE=`cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/pp_dpm_sclk |grep "*" | awk -F  " " '{print $2}' | tr -d 'Mhz' | tr '\n' ' '`
+                GPU_MEMORY=`cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/pp_dpm_mclk |grep "*" | awk -F  " " '{print $2}' | tr -d 'Mhz' | tr '\n' ' '`
 
-        if [ -f /sys/class/drm/card$devid/device/hwmon/hwmon?/power1_average ] ; then
-                GPU_POWER=$(( $(echo `cat /sys/class/drm/card$devid/device/hwmon/hwmon?/power1_average`) / 1000000 ))
-		GPU_MAX_POWER=$(( $(echo `cat /sys/class/drm/card$devid/device/hwmon/hwmon?/power1_cap`) / 1000000 ))
-                GPU_TEMP1=$(( $(echo `cat /sys/class/drm/card$devid/device/hwmon/hwmon?/temp1_input`) / 1000 ))
-                GPU_TEMP2=$(( $(echo `cat /sys/class/drm/card$devid/device/hwmon/hwmon?/temp2_input`) / 1000 ))
-        fi
+                GPU_POWER=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/power1_average`) / 1000000 ))
+		GPU_MAX_POWER=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/power1_cap`) / 1000000 ))
+                GPU_TEMP1=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/temp1_input`) / 1000 ))
+                GPU_TEMP2=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/temp2_input`) / 1000 ))
 
-        if [ -f /sys/class/drm/card$devid/device/hwmon/hwmon?/pwm1 ]; then
-                GPU_FANSPEED=$(bc <<< "scale=2; (`cat /sys/class/drm/card$devid/device/hwmon/hwmon?/pwm1`/255)*100" | cut -d \. -f 1)
-        fi
-        if [ -f /sys/kernel/debug/dri/$devid/amdgpu_pm_info ]; then
-                GPU_VOLT=$(cat /sys/kernel/debug/dri/$devid/amdgpu_pm_info |grep 'GPU Voltage' | awk '{print $1}'| sed 's/ //g')
+                GPU_FANSPEED=$(bc <<< "scale=2; (`cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/pwm1`/255)*100" | cut -d \. -f 1)
+
+        if [ -f /sys/kernel/debug/dri/$x/amdgpu_pm_info ]; then
+                GPU_VOLT=$(cat /sys/kernel/debug/dri/$x/amdgpu_pm_info |grep 'GPU Voltage' | awk '{print $1}'| sed 's/ //g')
+	else
+		GPU_VOLT=$(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/in0_input`)
         fi
 Printer " [[ GPU$devid ==> | CoreClk: ${GPU_CORE}MHz | MemClk: ${GPU_MEMORY}MHz | Power Used: ${GPU_POWER}W | Power CAP: ${GPU_MAX_POWER}W | Voltage: ${GPU_VOLT}mV | Temp: ${GPU_TEMP1}C | ASIC Temp: ${GPU_TEMP2}C | Fanspeed: ${GPU_FANSPEED}% | ]]"
 
@@ -60,10 +55,6 @@ done
         MEM_WATTS=$(($AMDGPU_COUNT * 47))
         TOTAL_WATTS=$(echo $TOTAL_GPU_PWR $MEM_WATTS 50| xargs  | sed -e 's/\ /+/g' | bc)
         MINER_EFFICIENCY=$(echo $TOTAL_HASH $TOTAL_WATTS | awk '{print $1 / $2}')
-
-if [ $DAMN_IGPU -gt 0 ] && [ $AMDGPU_COUNT -gt 0 ]; then
-        Printer "\n\t[[ You have enabled iGPU it will be marked as GPU0 and not shown! ]] "
-fi
 
 if [ $AMDGPU_COUNT -gt 0 ]; then
         Printer "\n\tCurrent hashrate: ${TOTAL_HASH} MH/s"
@@ -99,29 +90,21 @@ fi
 }
 
 function gpu_detect_amd() {
-devid=$1
-
-if [ $DAMN_IGPU -gt 0 ]; then
-       devid=$((devid+1))
-fi
-
-if [ $DAMN_IGPU -gt 0 ] && [ $AMDGPU_COUNT -gt 0 ]; then
-        Printer "\n[[ You have enabled iGPU it will be marked as GPU0 and not taken in count! ]] "
-fi
+Printer "Input the GPU number you want to find:"
+read -t 10 gpu_id
+devid=$((gpu_id+1))
+pci_id=$(lspci -n | grep 1002: | egrep -v "\.1" |awk '{print $1}' |sed -n ${devid}p)
 
 if [ $AMDGPU_COUNT -gt 0 ]; then
         #killing miner
         screen -S miner -X quit
 	Printer "\n[[ Found $AMDGPU_COUNT AMD GPUs in the system ]] "
-	Printer "\n[[ Setting fan to 0% for GPU: $devid ]] "
-        Printer "\n[[ Command will repeat 10 times to make sure fan is totally stopped! ]] "
+	Printer "\n[[ Setting fan to 0% for GPU: $gpu_id ]] "
+        Printer "\n[[ Command will repeat 5 times to make sure fan is totally stopped! ]] "
         Printer "\n[[ Make sure to remain eye contact on the Rig while spinning down fans! ]] "
-	for ((n=0;n<10;n++))
+	for ((n=0;n<5;n++))
 	do
-# Uncomment next line if you use simplemining
-        /root/utils/wolfamdctrl -i $devid --set-fanspeed 0 > /dev/null 2>&1
-# Uncomment next line if you use mmpOS
-#        /opt/mmp/bin/ohgodatool -i $devid --set-fanspeed 0 > /dev/null 2>&1
+	echo 0 > /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/pwm1
 	sleep 0.5
 	done
 else
@@ -131,7 +114,8 @@ fi
 }
 
 function gpu_detect_nvidia() {
-devid=$1
+Printer "Input the GPU number you want to find:"
+read -t 10 devid
 if [ $NVIDIA_COUNT -gt 0 ]; then
         #killing miner
 	screen -S miner -X quit
@@ -155,19 +139,15 @@ function show_help() {
 }
 
 case "$1" in
-	--efficiency)
+	--detect-amd) gpu_detect_amd;;
+	--detect-nv) gpu_detect_nvidia;;
+        --help|-h) show_help;;
+        --efficiency|*)
 show_amd_stats $AMDGPU_COUNT
 show_nvi_stats $NVIDIA_COUNT
 Printer "\n\tShowing total of $TOTAL_COUNT GPU information"
 Printer "\tOf which $AMDGPU_COUNT are AMD and $NVIDIA_COUNT are NVIDIA"
 Printer "\n\tRig Kernel: $KERNEL_VERSION,\t Rig Uptime: $UPTIME,\t IP:  $ipAddress"
-;;
-        --detect)
-gpu_detect_amd
-gpu_detect_nvidia
-;;
-        --help|-h|*)
-        show_help
 ;;
 esac
 exit 0
