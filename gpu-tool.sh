@@ -135,7 +135,7 @@ devid=$1
 if [ $NVIDIA_COUNT -gt 0 ]; then
         #killing miner
 	screen -S miner -X quit
-        Printer "\n[[ Found $NVIDIA_COUNT AMD GPUs in the system ]] "
+        Printer "\n[[ Found $NVIDIA_COUNT NVIDIA GPUs in the system ]] "
         Printer "\n[[ Setting fan to 0% on GPU: $devid ]] "
         Printer "\n[[ Command will repeat 2 times to make sure fan is totally stopped! ]] "
         Printer "\n[[ Make sure to remain eye contact on the Rig while spinning down fans! ]] "
