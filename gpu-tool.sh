@@ -124,7 +124,7 @@ if [ $NVIDIA_COUNT -gt 0 ]; then
         Printer "\n[[ Make sure to remain eye contact on the Rig while spinning down fans! ]] "
         for ((n=0;n<2;n++))
         do
-		DISPLAY=:0.$devid /usr/bin/nvidia-settings -a [gpu:$devid]/GPUFanControlState=1 -a [fan:$devid]/GPUTargetFanSpeed=0
+		DISPLAY=:0 /usr/bin/nvidia-settings -a [gpu:$devid]/GPUFanControlState=1 -a [fan:$devid]/GPUTargetFanSpeed=0
 		sleep 0.2
         done
 else
