@@ -37,8 +37,11 @@ pci_id=$(lspci -n | grep 1002: | egrep -v "\.1" |awk '{print $1}' |sed -n ${devi
                 GPU_POWER=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/power1_average`) / 1000000 ))
 		GPU_MAX_POWER=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/power1_cap`) / 1000000 ))
                 GPU_TEMP1=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/temp1_input`) / 1000 ))
+        if [ -f  /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/temp2_input ]; then
                 GPU_TEMP2=$(( $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/temp2_input`) / 1000 ))
-
+        else
+                GPU_TEMP2=0
+        fi
                 GPU_FANSPEED=$(bc <<< "scale=2; (`cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/pwm1`/255)*100" | cut -d \. -f 1)
 
         if [ -f /sys/kernel/debug/dri/$x/amdgpu_pm_info ]; then
