@@ -45,11 +45,11 @@ pci_id=$(lspci -n | grep 1002: | egrep -v "\.1" |awk '{print $1}' |sed -n ${devi
                 GPU_FANSPEED=$(bc <<< "scale=2; (`cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/pwm1`/255)*100" | cut -d \. -f 1)
 
         if [ -f /sys/kernel/debug/dri/$x/amdgpu_pm_info ]; then
-                GPU_VOLT=$(cat /sys/kernel/debug/dri/$x/amdgpu_pm_info |grep 'GPU Voltage' | awk '{print $1}'| sed 's/ //g')
-	else
-		GPU_VOLT=$(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/in0_input`)
+                GPU_VOLT="VDDC: $(cat /sys/kernel/debug/dri/$x/amdgpu_pm_info |grep 'GPU Voltage' | awk '{print $1}'| sed 's/ //g')"
+        else
+                GPU_VOLT="VDDGFX: $(echo `cat /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/in0_input`)"
         fi
-Printer " [[ GPU$x ==> | CoreClk: ${GPU_CORE}MHz | MemClk: ${GPU_MEMORY}MHz | Power Used: ${GPU_POWER}W | Power CAP: ${GPU_MAX_POWER}W | Voltage: ${GPU_VOLT}mV | Temp: ${GPU_TEMP1}C | ASIC Temp: ${GPU_TEMP2}C | Fanspeed: ${GPU_FANSPEED}% | ]]"
+Printer " [[ GPU$x ==> | CoreClk: ${GPU_CORE}MHz | MemClk: ${GPU_MEMORY}MHz | Power Used: ${GPU_POWER}W | Power CAP: ${GPU_MAX_POWER}W | ${GPU_VOLT}mV | Temp: ${GPU_TEMP1}C | ASIC Temp: ${GPU_TEMP2}C | Fanspeed: ${GPU_FANSPEED}% | ]]"
 
 x=$((x+1))
         TOTAL_GPU_PWR="${TOTAL_GPU_PWR} ${GPU_POWER}"
