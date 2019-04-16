@@ -92,8 +92,7 @@ fi
 }
 
 function gpu_detect_amd() {
-Printer "Input the GPU number you want to find:"
-read -t 10 gpu_id
+gpu_id=$1
 devid=$((gpu_id+1))
 pci_id=$(lspci -n | grep 1002: | egrep -v "\.1" |awk '{print $1}' |sed -n ${devid}p)
 
@@ -106,7 +105,7 @@ if [ $AMDGPU_COUNT -gt 0 ]; then
         Printer "\n[[ Make sure to remain eye contact on the Rig while spinning down fans! ]] "
 	for ((n=0;n<5;n++))
 	do
-	echo 0 > /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon?/pwm1
+	echo 0 > /sys/devices/pci0000\:00/????:??:??.?/0000:${pci_id}/hwmon/hwmon*/pwm1
 	sleep 0.5
 	done
 else
@@ -116,8 +115,7 @@ fi
 }
 
 function gpu_detect_nvidia() {
-Printer "Input the GPU number you want to find:"
-read -t 10 devid
+devid=$1
 if [ $NVIDIA_COUNT -gt 0 ]; then
         #killing miner
 	screen -S miner -X quit
@@ -141,8 +139,8 @@ function show_help() {
 }
 
 case "$1" in
-	--detect-amd) gpu_detect_amd;;
-	--detect-nv) gpu_detect_nvidia;;
+	--detect-amd) gpu_detect_amd $2;;
+	--detect-nv) gpu_detect_nvidia $2;;
         --help|-h) show_help;;
         --efficiency|*)
 show_amd_stats $AMDGPU_COUNT
